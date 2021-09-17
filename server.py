@@ -61,16 +61,12 @@ if __name__ == "__main__":
     else:
         from clip_embeddings import embed_text, embed_image
 
-    records = json.loads(open("new_inventory_index.txt","r",encoding="utf-8").read())
+    # r = requests.get('https://api.neos.com/api/sessions')
+    # data = json.loads(r.text)
+    #
+    # d = pd.DataFrame(data)
 
-    # records[0]
-
-    # len(records)
-
-    records = list(filter(lambda x: ("name" in x and x["name"] is not None) and ("tags" in x and x["tags"] is not None) and ("thumbnailUri" in x and x["thumbnailUri"] is not None), records))
-    bad_thumbnails = ["R-18fb0f87-a8dc-426e-85b6-835a96d74ec3","R-47e0eba3-b408-45a6-a25d-771533803680","R-72815276-5acf-4b2f-a6f4-a4ecfa7e284d","R-84e14452-9d93-449a-8c77-910c62694a03","R-8e023894-dc52-43c4-a575-e09db0e3751c","R-a8c347ef-76fc-4759-b9c8-09a6c4c02c3d","R-aa261a5b-747e-49e6-a8a2-a3dc926dc3e7","R-afa0122b-faab-4bf3-a537-938d0a053e55","R-f6fe4528-f67c-46a5-8fb2-d18fd2f471de"]
-    records = list(filter(lambda x: x["id"] not in bad_thumbnails, records))
-
+    records = list(filter(lambda x: np.all([(field in x and x[field] is not None) for field in fields]), records))
     tags = list(map(lambda x: x["tags"], records))
     names = list(map(lambda x: x["name"], records))
     paths = list(map(lambda x: sum(map(lambda y: list(map(lambda z: z.lower().strip(), re.split(' |-|_',y))),x["path"].split("\\")),[]), records))

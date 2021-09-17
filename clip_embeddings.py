@@ -41,18 +41,28 @@ def modified_tokenize(texts: Union[str, List[str]], context_length: int = 77) ->
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
-def embed_image(images):
+def embed_image(images, fromarray=False):
     if type(images) == str: images = [images]
     with torch.no_grad():
         batch_size = 128
-        imagest = preprocess(Image.open(images[0])).unsqueeze(0).to(device)
+        if fromarray:
+            imagest = preprocess(Image.fromarray(images[0])).unsqueeze(0).to(device)
+        else:
+            imagest = preprocess(Image.open(images[0])).unsqueeze(0).to(device)
         image_features = model.encode_image(imagest)
         for i in range(1,len(images),batch_size):
-            imagest = preprocess(Image.open(images[i])).unsqueeze(0).to(device)
+            if fromarray:
+                imagest = preprocess(Image.fromarray(images[i])).unsqueeze(0).to(device)
+            else:
+                imagest = preprocess(Image.open(images[i])).unsqueeze(0).to(device)
             for image in images[i+1:i+batch_size]:
-                imagest = torch.cat([imagest,preprocess(Image.open(image)).unsqueeze(0).to(device)],0)
+                if fromarray:
+                    imagest = torch.cat([imagest,preprocess(Image.fromarray(image)).unsqueeze(0).to(device)],0)
+                else:
+                    imagest = torch.cat([imagest,preprocess(Image.open(image)).unsqueeze(0).to(device)],0)
             image_features = torch.cat([image_features,model.encode_image(imagest)],0)
         return image_features.cpu().numpy()
+
 
 def embed_text(texts):
     if type(texts) == str: texts = [texts]
